@@ -32,7 +32,12 @@ set_target_properties(swscale PROPERTIES IMPORTED_LOCATION ${ffmpeg_lib_dir}/lib
 add_library(
         pplayer
         SHARED
-        native-lib.cpp)
+        native-lib.cpp
+        IDemux.cpp
+        FFDemux.cpp
+        XData.cpp
+        XLog.cpp
+)
 
 find_library(
         log-lib
@@ -42,5 +47,8 @@ find_library(android-lib android)
 
 target_link_libraries(
         pplayer
+        GLESv2 EGL
+        OpenSLES
         avcodec avdevice avfilter avformat avutil swresample swscale
+        android
         ${log-lib})

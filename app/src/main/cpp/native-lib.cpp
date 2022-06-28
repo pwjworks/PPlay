@@ -1,9 +1,8 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
-
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN,"testff",__VA_ARGS__)
-
+#include "FFDemux.h"
+#include "XLog.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -16,27 +15,29 @@ static double r2d(AVRational r) {
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
-        JNIEnv* env,
+        JNIEnv *env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
 
     hello += avcodec_configuration();
 
+    auto *ffdemux = new FFDemux();
+    ffdemux->Open("/sdcard/20051210-w50s.flv");
     avformat_network_init();
 
     AVFormatContext *ic = nullptr;
     char path[] = "/sdcard/20051210-w50s.flv";
     int re = avformat_open_input(&ic, path, nullptr, nullptr);
     if (re != 0) {
-        LOGW("avformat open input %s failed:%s", path, av_err2str(re));
+        XLOGW("avformat open input %s failed:%s", path, av_err2str(re));
     }
-    LOGW("avformat open input %s success", path);
+    XLOGW("avformat open input %s success", path);
     re = avformat_find_stream_info(ic, nullptr);
     if (re != 0) {
-        LOGW("avformat_open_input %s failed!", path);
+        XLOGW("avformat_open_input %s failed!", path);
 
     }
-    LOGW("duration = %ld nb_stream = %d", ic->duration, ic->nb_streams);
+    XLOGW("duration = %ld nb_stream = %d", ic->duration, ic->nb_streams);
     double fps = 0;
     int width = 0;
     int height = 0;
@@ -45,23 +46,23 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
     for (int i = 0; i < ic->nb_streams; i++) {
         AVStream *as = ic->streams[i];
         if (as->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            LOGW("视频数据");
+            XLOGW("视频数据");
             videoStream = i;
             fps = r2d(as->avg_frame_rate);
-            LOGW("fps=%f,witdth=%d,height=%d codecid=%d pixformat=%d", fps, as->codecpar->width,
-                 as->codecpar->height, as->codecpar->codec_id, as->codecpar->format);
+            XLOGW("fps=%f,witdth=%d,height=%d codecid=%d pixformat=%d", fps, as->codecpar->width,
+                  as->codecpar->height, as->codecpar->codec_id, as->codecpar->format);
         } else if (as->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            LOGW("音频数据");
+            XLOGW("音频数据");
             audioStream = i;
-            LOGW("sample rate=%d channels=%d sample format=%d",
-                 as->codecpar->sample_rate,
-                 as->codecpar->channels,
-                 as->codecpar->format
+            XLOGW("sample rate=%d channels=%d sample format=%d",
+                  as->codecpar->sample_rate,
+                  as->codecpar->channels,
+                  as->codecpar->format
             );
         }
     }
     audioStream = av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
-    LOGW("av find best stream audioStream =%d ", audioStream);
+    XLOGW("av find best stream audioStream =%d ", audioStream);
 
     // 解码器
     AVCodec *codec = const_cast<AVCodec *>(avcodec_find_decoder(
@@ -71,7 +72,7 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
     AVCodec *hardcodec = const_cast<AVCodec *>(avcodec_find_decoder_by_name("h264_mediacodec"));
 
     if (!codec) {
-        LOGW("avcodec find failed!");
+        XLOGW("avcodec find failed!");
         return env->NewStringUTF(hello.c_str());
     }
     // 解码器初始化
@@ -82,7 +83,7 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
 
     re = avcodec_open2(cc, nullptr, nullptr);
     if (re != 0) {
-        LOGW("avcodec_open2 failed!");
+        XLOGW("avcodec_open2 failed!");
         return env->NewStringUTF(hello.c_str());
     }
 
@@ -92,7 +93,7 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
         int re = av_read_frame(ic, pkt);
 
         if (re != 0) {
-            LOGW("读取到结尾处！");
+            XLOGW("读取到结尾处！");
 //            int pos = 0;
 //            av_seek_frame(ic, videoStream, 0,
 //                          AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
@@ -101,23 +102,23 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
         if (pkt->stream_index != videoStream) {
             continue;
         }
-        LOGW("stream= %d size= %d pts= %ld flag=%d",
-             pkt->stream_index, pkt->size, pkt->pts, pkt->flags
+        XLOGW("stream= %d size= %d pts= %ld flag=%d",
+              pkt->stream_index, pkt->size, pkt->pts, pkt->flags
         );
         // 发送到线程中解码
         re = avcodec_send_packet(cc, pkt);
         // 清理
         av_packet_unref(pkt);
         if (re != 0) {
-            LOGW("avcodec send packet failed!");
+            XLOGW("avcodec send packet failed!");
             continue;
         }
         re = avcodec_receive_frame(cc, frame);
         if (re != 0) {
-            LOGW("avcodec receive frame failed!");
+            XLOGW("avcodec receive frame failed!");
             continue;
         }
-        LOGW("avcodec receive frame %ld", frame->pts);
+        XLOGW("avcodec receive frame %ld", frame->pts);
     }
     avformat_close_input(&ic);
     return env->NewStringUTF(hello.c_str());
@@ -130,9 +131,9 @@ Java_com_pwjworks_pplayer_MainActivity_Open(JNIEnv *env, jobject thiz, jstring u
     printf("%s", url_);
     FILE *fp = fopen(url_, "rb");
     if (!fp) {
-        LOGW("%s open failed!", url_);
+        XLOGW("%s open failed!", url_);
     } else {
-        LOGW("%s open success!", url_);
+        XLOGW("%s open success!", url_);
         fclose(fp);
     }
     env->ReleaseStringUTFChars(url, url_);
