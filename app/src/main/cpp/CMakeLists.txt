@@ -37,6 +37,7 @@ add_library(
         FFDemux.cpp
         XData.cpp
         XLog.cpp
+        XThread.cpp
 )
 
 find_library(

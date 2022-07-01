@@ -5,9 +5,16 @@
 
 #include "IDemux.h"
 
+struct AVFormatContext;
+
 class FFDemux : public IDemux {
 public:
+    FFDemux();
+
     bool Open(const char *url) override;
 
     XData Read() override;
+
+private:
+    AVFormatContext *ic = 0;
 };
