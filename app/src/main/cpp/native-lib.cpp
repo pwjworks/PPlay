@@ -24,10 +24,14 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
     auto *ffdemux = new FFDemux();
     ffdemux->Open("/sdcard/20051210-w50s.flv");
     ffdemux->Read();
-    for (int i = 0; i < 30; i++) {
-        XData d = ffdemux->Read();
-        XLOGI("Read data size is %d", d.size);
-    }
+
+    ffdemux->Start();
+    XSleep(100);
+    ffdemux->Stop();
+//    for (int i = 0; i < 30; i++) {
+//        XData d = ffdemux->Read();
+//        XLOGI("Read data size is %d", d.size);
+//    }
     return env->NewStringUTF(hello.c_str());
 }
 extern "C"

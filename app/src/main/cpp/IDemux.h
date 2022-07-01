@@ -4,11 +4,12 @@
 #pragma once
 
 #include "XData.h"
+#include "XThread.h"
 
 /*
  * 解封装接口
  */
-class IDemux {
+class IDemux : public XThread {
 public:
     /**
      * 打开文件，或者流媒体 rmtp http rtsp
@@ -26,4 +27,7 @@ public:
      * 总时长(单位毫秒)
      */
     int totalMs = 0;
+    
+protected:
+    void Main() override;
 };
