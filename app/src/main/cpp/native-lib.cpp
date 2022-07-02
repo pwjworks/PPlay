@@ -9,6 +9,14 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+class TestObs : public IObserver {
+public:
+    void Update(XData d) override {
+        XLOGI("TestObs Updata data size is %d", d.size);
+
+    }
+};
+
 static double r2d(AVRational r) {
     return r.num == 0 || r.den == 0 ? 0. : (double) r.num / r.den;
 }
@@ -21,7 +29,10 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
 
     hello += avcodec_configuration();
 
+    auto *tobs = new TestObs();
+
     auto *ffdemux = new FFDemux();
+    ffdemux->AddObs(tobs);
     ffdemux->Open("/sdcard/20051210-w50s.flv");
     ffdemux->Read();
 

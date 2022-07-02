@@ -38,6 +38,8 @@ add_library(
         XData.cpp
         XLog.cpp
         XThread.cpp
+        IObserver.cpp
+        IDecode.cpp
 )
 
 find_library(
