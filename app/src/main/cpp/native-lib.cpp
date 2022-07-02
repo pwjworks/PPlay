@@ -3,6 +3,7 @@
 #include <android/log.h>
 #include "FFDemux.h"
 #include "XLog.h"
+#include "FFDecode.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -32,13 +33,24 @@ Java_com_pwjworks_pplayer_MainActivity_stringFromJNI(
     auto *tobs = new TestObs();
 
     auto *ffdemux = new FFDemux();
-    ffdemux->AddObs(tobs);
+    // ffdemux->AddObs(tobs);
     ffdemux->Open("/sdcard/20051210-w50s.flv");
     ffdemux->Read();
+    IDecode *vdecode = new FFDecode();
+    vdecode->Open(ffdemux->GetVPara());
+
+    IDecode *adecode = new FFDecode();
+    adecode->Open(ffdemux->GetAPara());
+
+    ffdemux->AddObs(vdecode);
+    ffdemux->AddObs(adecode);
 
     ffdemux->Start();
-    XSleep(100);
-    ffdemux->Stop();
+
+    adecode->Start();
+    vdecode->Start();
+//    XSleep(100);
+//    ffdemux->Stop();
 //    for (int i = 0; i < 30; i++) {
 //        XData d = ffdemux->Read();
 //        XLOGI("Read data size is %d", d.size);

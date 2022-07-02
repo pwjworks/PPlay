@@ -39,7 +39,11 @@ add_library(
         XLog.cpp
         XThread.cpp
         IObserver.cpp
+        XParameter.cpp
+        FFDecode.cpp
         IDecode.cpp
+        IVideoView.cpp
+        GLVideoView.cpp
 )
 
 find_library(
