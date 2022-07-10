@@ -44,6 +44,9 @@ add_library(
         IDecode.cpp
         IVideoView.cpp
         GLVideoView.cpp
+        XTexture.cpp
+        XEGL.cpp
+        XShader.cpp
 )
 
 find_library(

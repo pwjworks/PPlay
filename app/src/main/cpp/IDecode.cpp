@@ -37,14 +37,16 @@ void IDecode::Update(XData pkt) {
     }
     while (!isExit) {
         {
-            std::lock_guard<std::mutex> lck(packsMutex);
+            packsMutex.lock();
             // 大于最大队列值，阻塞
             if (packs.size() < maxList) {
                 // 生产者
                 packs.emplace_back(pkt);
+                packsMutex.unlock();
                 break;
             }
         }
+        packsMutex.unlock();
         XSleep(1);
     }
 }

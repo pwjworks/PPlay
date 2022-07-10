@@ -1,9 +1,5 @@
 package com.pwjworks.pplayer;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -15,6 +11,10 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.pwjworks.pplayer.databinding.ActivityMainBinding;
 
@@ -37,9 +37,6 @@ public class MainActivity extends AppCompatActivity {
         // Example of a call to a native method
         TextView tv = binding.sampleText;
         tv.setText(stringFromJNI());
-        if (Utils.isPermissionGranted(this)) {
-            Open("/sdcard/20051210-w50s.flv", this);
-        }
     }
 
 
@@ -110,5 +107,4 @@ public class MainActivity extends AppCompatActivity {
      */
     public native String stringFromJNI();
 
-    public native boolean Open(String url, Object handle);
 }
